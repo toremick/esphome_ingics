@@ -107,7 +107,7 @@ optional<IngicsParseResult> parse_ingics(const esp32_ble_tracker::ESPBTDevice &d
 }
 
 bool IngicsListener::parse_device(const esp32_ble_tracker::ESPBTDevice &device) {
-  auto res = parse_ruuvi(device);
+  auto res = parse_ingics(device);
   if (!res.has_value())
     return false;
 
