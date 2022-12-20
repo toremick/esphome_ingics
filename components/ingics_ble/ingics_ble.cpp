@@ -9,9 +9,14 @@ namespace ingics_ble {
 static const char *const TAG = "ingics_ble";
 
 bool parse_ingics_data_byte(const esp32_ble_tracker::adv_data_t &adv_data, IngicsParseResult &result) {
-  /*
+  
   const uint8_t data_type = adv_data[0];
   const auto *data = &adv_data[1];
+  ESP_LOGD(TAG, "Got INGICS data (%s):", data);
+  
+  const float temp_val = (data[1] & 0x7F) + (data[2] / 100.0f);
+  result.temperature = temp_val;
+  /*
   switch (data_type) {
     case 0x03: {  // RAWv1
       if (adv_data.size() != 14)
@@ -83,7 +88,7 @@ bool parse_ingics_data_byte(const esp32_ble_tracker::adv_data_t &adv_data, Ingic
   return true;
 }
 
-optional<IngicsParseResult> parse_ingicsi(const esp32_ble_tracker::ESPBTDevice &device) {
+optional<IngicsParseResult> parse_ingics(const esp32_ble_tracker::ESPBTDevice &device) {
   bool success = false;
   IngicsParseResult result{};
   for (auto &it : device.get_manufacturer_datas()) {
@@ -91,29 +96,31 @@ optional<IngicsParseResult> parse_ingicsi(const esp32_ble_tracker::ESPBTDevice &
     if (!is_ingics)
       continue;
 
-   // ESP_LOGD(TAG, "Got INGICS (%s):", device.address_str().c_str());
+    ESP_LOGD(TAG, "Got INGICS (%s):", device.address_str().c_str());
 
-//    if (parse_ruuvi_data_byte(it.data, result))
+    if (parse_ingics_data_byte(it.data, result))
       success = true;
   }
- // if (!success)
-  //  return {};
+  if (!success)
+    return {};
   return result;
 }
 
 bool IngicsListener::parse_device(const esp32_ble_tracker::ESPBTDevice &device) {
-  //auto res = parse_ruuvi(device);
-  //if (!res.has_value())
-   // return false;
+  auto res = parse_ruuvi(device);
+  if (!res.has_value())
+    return false;
 
   ESP_LOGD(TAG, "Got IngicsTag (%s):", device.address_str().c_str());
-/*
-  if (res->humidity.has_value()) {
-    ESP_LOGD(TAG, "  Humidity: %.2f%%", *res->humidity);
-  }
+
+//  if (res->humidity.has_value()) {
+ //   ESP_LOGD(TAG, "  Humidity: %.2f%%", *res->humidity);
+  //}
+
   if (res->temperature.has_value()) {
     ESP_LOGD(TAG, "  Temperature: %.2f°C", *res->temperature);
   }
+/*
   if (res->pressure.has_value()) {
     ESP_LOGD(TAG, "  Pressure: %.2fhPa", *res->pressure);
   }
